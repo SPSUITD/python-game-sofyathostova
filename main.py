@@ -43,57 +43,78 @@ bg_sound.play()
 vrag_timer = pygame.USEREVENT + 1
 pygame.time.set_timer(vrag_timer, 3500)
 
+label = pygame.font.Font('fonts/Undertale-Battle-Font.ttf', 40)
+lose_label = label.render('Вы проиграли!', True, (255, 255, 255))
+restart_label = label.render('Играть заново', True, (139, 237, 100))
+restart_label_rect = restart_label.get_rect(topleft=(180,200))
+
+gameplay = True
+
 running = True
 while running:
 
     screen.blit(bg, (bg_x, 0))
     screen.blit(bg, (bg_x + 511, 0))
 
-    player_rect = walk_left[0].get_rect(topleft=(player_x, player_y))
+    if gameplay:
+        player_rect = walk_left[0].get_rect(topleft=(player_x, player_y))
 
-    if vrag_list_in_game:
-        for el in vrag_list_in_game:
-            screen.blit(vrag, el)
-            el.x -= 10
+        if vrag_list_in_game:
+            for (i, el) in enumerate(vrag_list_in_game):
+                screen.blit(vrag, el)
+                el.x -= 10
 
-            if player_rect.colliderect(el):
-                print('Вы проиграли! Но вы набрали ... очков!')
+                if el.x < -500:
+                    vrag_list_in_game.pop()
 
-    keys = pygame.key.get_pressed()
+                if player_rect.colliderect(el):
+                    gameplay = False
 
-    if keys[pygame.K_LEFT]:
-        screen.blit(walk_left[player_anim_count], (player_x, player_y))
-    else:
-        screen.blit(walk_right[player_anim_count], (player_x, player_y))
+        keys = pygame.key.get_pressed()
 
-    if keys[pygame.K_LEFT] and player_x > 50:
-        player_x -= player_speed
-    elif keys[pygame.K_RIGHT] and player_x < 200:
-        player_x += player_speed
-
-
-    if not is_jump:
-        if keys[pygame.K_SPACE]:
-            is_jump =True
-    else:
-        if jump_count >= -7:
-           if jump_count >0:
-               player_y -= (jump_count ** 2) / 2
-           else:
-               player_y += (jump_count ** 2) / 2
-           jump_count -= 1
+        if keys[pygame.K_LEFT]:
+            screen.blit(walk_left[player_anim_count], (player_x, player_y))
         else:
-            is_jump = False
-            jump_count = 7
+            screen.blit(walk_right[player_anim_count], (player_x, player_y))
 
-    if player_anim_count == 3:
-        player_anim_count = 0
+        if keys[pygame.K_LEFT] and player_x > 50:
+            player_x -= player_speed
+        elif keys[pygame.K_RIGHT] and player_x < 200:
+            player_x += player_speed
+
+
+        if not is_jump:
+            if keys[pygame.K_SPACE]:
+                is_jump =True
+        else:
+            if jump_count >= -7:
+               if jump_count >0:
+                   player_y -= (jump_count ** 2) / 2
+               else:
+                   player_y += (jump_count ** 2) / 2
+               jump_count -= 1
+            else:
+                is_jump = False
+                jump_count = 7
+
+        if player_anim_count == 3:
+            player_anim_count = 0
+        else:
+            player_anim_count += 1
+
+        bg_x -= 2
+        if bg_x == -618:
+            bg_x = 0
     else:
-        player_anim_count += 1
+        screen.fill((87, 88, 89))
+        screen.blit(lose_label, (180, 100))
+        screen.blit(restart_label, restart_label_rect)
 
-    bg_x -= 2
-    if bg_x == -618:
-        bg_x = 0
+        mouse = pygame.mouse.get_pos()
+        if restart_label_rect.collidepoint(mouse) and pygame.mouse.get_pressed()[0]:
+            gameplay = True
+            player_x = 150
+            vrag_list_in_game.clear()
 
     pygame.display.update()
 
