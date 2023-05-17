@@ -48,6 +48,9 @@ lose_label = label.render('Вы проиграли!', True, (255, 255, 255))
 restart_label = label.render('Играть заново', True, (139, 237, 100))
 restart_label_rect = restart_label.get_rect(topleft=(180,200))
 
+bullets_left = 5
+bullet = pygame.image.load('images/bullet.png').convert_alpha()
+bullets = []
 gameplay = True
 
 running = True
@@ -64,7 +67,7 @@ while running:
                 screen.blit(vrag, el)
                 el.x -= 10
 
-                if el.x < -500:
+                if el.x < -3000:
                     vrag_list_in_game.pop()
 
                 if player_rect.colliderect(el):
@@ -105,6 +108,20 @@ while running:
         bg_x -= 2
         if bg_x == -618:
             bg_x = 0
+
+        if bullets:
+            for (i, el) in enumerate(bullets):
+                screen.blit(bullet, (el.x, el.y))
+                el.x += 6
+
+                if el.x > 550:
+                    bullets.pop(i)
+
+                if vrag_list_in_game:
+                    for (index, vrag_el) in enumerate(vrag_list_in_game):
+                        if el.colliderect(vrag_el):
+                            vrag_list_in_game.pop(index)
+                            bullets.pop(i)
     else:
         screen.fill((87, 88, 89))
         screen.blit(lose_label, (180, 100))
@@ -115,6 +132,7 @@ while running:
             gameplay = True
             player_x = 150
             vrag_list_in_game.clear()
+            bullets.clear()
 
     pygame.display.update()
 
@@ -124,6 +142,7 @@ while running:
             pygame.quit()
         if event.type == vrag_timer:
             vrag_list_in_game.append(vrag.get_rect(topleft=(620, 430)))
-
-
+        if gameplay and event.type == pygame.KEYUP and event.key == pygame.K_b and bullets_left > 5:
+            bullets.append(bullet.get_rect(topleft=(player_x + 30, player_y + 110)))
+            bullets_left -= 1
     clock.tick(10)
