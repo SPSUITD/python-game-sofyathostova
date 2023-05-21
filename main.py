@@ -3,7 +3,7 @@ import pygame
 clock = pygame.time.Clock()
 pygame.init()
 screen = pygame.display.set_mode((511, 513)) # flags=pygame.NOFRAME
-pygame.display.set_caption("Krutaya igra")
+pygame.display.set_caption("Крутая игра")
 icon = pygame.image.load('images/ikonka.png').convert_alpha()
 pygame.display.set_icon(icon)
 
@@ -26,6 +26,7 @@ walk_right = [
 vrag = pygame.image.load('images/vrag.png').convert_alpha()
 
 vrag_list_in_game = []
+score = 0
 
 player_anim_count = 0
 bg_x = 0
@@ -38,15 +39,16 @@ is_jump = False
 jump_count = 7
 
 bg_sound = pygame.mixer.Sound('sounds/bg.mp3')
-bg_sound.play()
+#bg_sound.play()
 
 vrag_timer = pygame.USEREVENT + 1
 pygame.time.set_timer(vrag_timer, 3500)
 
-label = pygame.font.Font('fonts/Undertale-Battle-Font.ttf', 40)
+label = pygame.font.Font('fonts/Undertale-Battle-Font.ttf', 30)
 lose_label = label.render('Вы проиграли!', True, (255, 255, 255))
 restart_label = label.render('Играть заново', True, (139, 237, 100))
-restart_label_rect = restart_label.get_rect(topleft=(180,200))
+restart_label_rect = restart_label.get_rect(topleft=(60, 200))
+
 
 bullets_left = 5
 bullet = pygame.image.load('images/bullet.png').convert_alpha()
@@ -55,20 +57,24 @@ gameplay = True
 
 running = True
 while running:
-
     screen.blit(bg, (bg_x, 0))
     screen.blit(bg, (bg_x + 511, 0))
+    score_label_play = label.render('Количество очков: ' + str(score), True, (0, 0, 0))
+    score_label_lose = label.render('Количество очков: ' + str(score), True, (255, 255, 255))
+    screen.blit(score_label_play, (10, 10))
+
+
 
     if gameplay:
         player_rect = walk_left[0].get_rect(topleft=(player_x, player_y))
-
         if vrag_list_in_game:
             for (i, el) in enumerate(vrag_list_in_game):
                 screen.blit(vrag, el)
                 el.x -= 10
 
-                if el.x < -3000:
-                    vrag_list_in_game.pop()
+                if el.x < player_x -100:
+                    vrag_list_in_game.pop(0)
+                    score += 1
 
                 if player_rect.colliderect(el):
                     gameplay = False
@@ -122,9 +128,11 @@ while running:
                         if el.colliderect(vrag_el):
                             vrag_list_in_game.pop(index)
                             bullets.pop(i)
+                            score += 1
     else:
         screen.fill((87, 88, 89))
-        screen.blit(lose_label, (180, 100))
+        screen.blit(lose_label, (60, 100))
+        screen.blit(score_label_lose, (60, 150))
         screen.blit(restart_label, restart_label_rect)
 
         mouse = pygame.mouse.get_pos()
@@ -133,6 +141,7 @@ while running:
             player_x = 150
             vrag_list_in_game.clear()
             bullets.clear()
+            score = 0
 
     pygame.display.update()
 
@@ -142,7 +151,7 @@ while running:
             pygame.quit()
         if event.type == vrag_timer:
             vrag_list_in_game.append(vrag.get_rect(topleft=(620, 430)))
-        if gameplay and event.type == pygame.KEYUP and event.key == pygame.K_b and bullets_left > 5:
+        if gameplay and event.type == pygame.KEYUP and event.key == pygame.K_b and bullets_left > 0:
             bullets.append(bullet.get_rect(topleft=(player_x + 30, player_y + 110)))
             bullets_left -= 1
     clock.tick(10)
